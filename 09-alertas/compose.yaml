@@ -1,0 +1,40 @@
+# Sesión 09: Prometheus, Grafana y Mailpit (los correos de las alertas).
+#   docker compose up -d                 (en esta carpeta)
+#   cd api-libros && npm run start:dev  (la API, en tu ordenador)
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # para que también funcione en Linux
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    container_name: grafana
+    ports:
+      - "3001:3000" # el 3000 es de la API
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin # solo para tu ordenador
+      # Los correos de las alertas van a Mailpit, un servidor de correo falso
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: mailpit:1025
+      GF_SMTP_FROM_ADDRESS: grafana@api-libros.local
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - mailpit
+
+  # Recoge los correos que envía Grafana: http://localhost:8025
+  # No sale nada de tu ordenador.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: mailpit
+    ports:
+      - "8025:8025"

@@ -1,0 +1,89 @@
+# CI de este repositorio: comprueba que el código de cada clase pasa el lint y los tests.
+# Cada carpeta lleva además su propio .github/workflows/: esos solo funcionan
+# cuando copias la carpeta como repositorio independiente (GitHub solo ejecuta
+# los workflows de la raíz).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - 01-ci-github-actions/web-minimalista
+          - 02-calidad-sonarqube/web-minimalista
+          - 03-versiones-artefactos/web-minimalista
+          - 04-entornos-produccion/web-minimalista
+          - 06-devsecops/web-minimalista
+          - 07-gitops-kubernetes/web-minimalista
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+      - name: Preparar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Instalar dependencias (si las hay)
+        run: if [ -f package-lock.json ]; then npm ci; fi
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+
+  api:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - 05-pipeline-api/api-libros
+          - 06-devsecops/api-libros
+          - 07-gitops-kubernetes/api-libros
+          - 08-monitorizacion/api-libros
+          - 09-alertas/api-libros
+          - 10-logs-loki/api-libros
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+      - name: Preparar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Comprobar tipos
+        run: npm run typecheck
+      - name: Tests (unitarios y e2e)
+        run: npm test
+
+  compose:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [08-monitorizacion, 09-alertas, 10-logs-loki]
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+      - name: Comprobar el compose.yaml
+        run: docker compose -f ${{ matrix.project }}/compose.yaml config --quiet

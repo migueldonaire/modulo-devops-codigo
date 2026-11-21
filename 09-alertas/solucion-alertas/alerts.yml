@@ -1,0 +1,116 @@
+# Solución de la sesión 09: las alertas "como código".
+# Para cargarlas, copia este fichero a grafana/provisioning/alerting/
+# y reinicia Grafana: docker compose restart grafana
+# (si ya creaste las mismas alertas a mano, bórralas antes para no tenerlas repetidas).
+apiVersion: 1
+
+# A quién se avisa: un correo (lo recoge Mailpit, http://localhost:8025)
+contactPoints:
+  - orgId: 1
+    name: Equipo
+    receivers:
+      - uid: equipo-email
+        type: email
+        settings:
+          addresses: equipo@api-libros.local
+
+# Todas las alertas van al contact point "Equipo"
+policies:
+  - orgId: 1
+    receiver: Equipo
+    group_by: [grafana_folder, alertname]
+
+groups:
+  - orgId: 1
+    name: api-libros
+    folder: API de libros
+    interval: 10s # cada cuánto se comprueban
+    rules:
+        - uid: api-down
+          title: API down
+          condition: C
+          for: 1m
+          noDataState: Alerting
+          execErrState: Error
+          annotations:
+            summary: La API no responde
+          data:
+            - refId: A
+              datasourceUid: prometheus
+              relativeTimeRange: { from: 600, to: 0 }
+              model:
+                expr: 'up{job="api-libros"}'
+                instant: true
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                type: threshold
+                expression: A
+                conditions:
+                  - evaluator: { type: lt, params: [1] }
+        - uid: api-slow
+          title: API slow
+          condition: C
+          for: 1m
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            summary: El 5 % más lento de las peticiones tarda más de 0,5 s
+          data:
+            - refId: A
+              datasourceUid: prometheus
+              relativeTimeRange: { from: 600, to: 0 }
+              model:
+                expr: 'histogram_quantile(0.95, sum by (le) (rate(api_http_request_duration_seconds_bucket[5m])))'
+                instant: true
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                type: threshold
+                expression: A
+                conditions:
+                  - evaluator: { type: gt, params: [0.5] }
+        - uid: server-errors
+          title: Server errors
+          condition: C
+          for: 1m
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            summary: Más del 5 % de las peticiones dan error 5xx
+          data:
+            - refId: A
+              datasourceUid: prometheus
+              relativeTimeRange: { from: 600, to: 0 }
+              model:
+                expr: 'sum(rate(api_http_request_duration_seconds_count{status_code=~"5.."}[5m])) / sum(rate(api_http_request_duration_seconds_count[5m]))'
+                instant: true
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                type: threshold
+                expression: A
+                conditions:
+                  - evaluator: { type: gt, params: [0.05] }
+        - uid: too-many-404
+          title: Too many 404
+          condition: C
+          for: 1m
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            summary: Más de 1 petición por segundo a rutas que no existen
+          data:
+            - refId: A
+              datasourceUid: prometheus
+              relativeTimeRange: { from: 600, to: 0 }
+              model:
+                expr: 'sum(rate(api_http_request_duration_seconds_count{status_code="404"}[1m]))'
+                instant: true
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                type: threshold
+                expression: A
+                conditions:
+                  - evaluator: { type: gt, params: [1] }

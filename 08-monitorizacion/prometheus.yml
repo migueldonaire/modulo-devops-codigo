@@ -1,0 +1,11 @@
+# Prometheus lee (scrapea) las métricas de la API cada 15 segundos.
+# La API corre en tu ordenador (npm run start:dev), no dentro de Docker:
+# host.docker.internal es "tu ordenador" visto desde un contenedor.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: api-libros
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:3000"]

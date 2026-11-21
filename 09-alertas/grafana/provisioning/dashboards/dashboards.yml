@@ -1,0 +1,8 @@
+# Grafana carga al arrancar todos los dashboards (.json) de esta carpeta
+apiVersion: 1
+providers:
+  - name: api-libros
+    folder: API de libros
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
