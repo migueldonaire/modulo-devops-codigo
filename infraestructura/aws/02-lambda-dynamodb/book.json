@@ -1,0 +1,6 @@
+{
+  "id": { "S": "1" },
+  "title": { "S": "El Quijote" },
+  "author": { "S": "Miguel de Cervantes" },
+  "price": { "N": "12.5" }
+}

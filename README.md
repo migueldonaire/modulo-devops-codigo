@@ -26,6 +26,18 @@ La API es la de libros de los apuntes de NestJS (la de `03a-nestjs-memoria` de [
 | `09-alertas` | `09_alertas_y_percentiles.md` | Mailpit para los correos de las alertas y la solución de las alertas como código |
 | `10-logs-loki` | `10_logs_loki.md` | Log de cada petición, la API en Docker, Loki y Alloy |
 
+## Infraestructura: AWS y Terraform
+
+En `infraestructura/` está el código de los apuntes de AWS y Terraform. Se practica contra el **AWS Emulator** oficial, en tu ordenador (mira su `README.md`).
+
+| Carpeta | Apuntes | Qué hay |
+|---|---|---|
+| `infraestructura/aws/01-aws-panorama` | `01_aws_panorama.md` | El `Dockerfile` del emulador, las variables para apuntar la terminal al emulador y la política del bucket |
+| `infraestructura/aws/02-lambda-dynamodb` | `02_aws_lambda_dynamodb.md` | La Lambda `hello`, la API de libros en Lambda (`books-api`) y su solución, y los JSON de la clase |
+| `infraestructura/aws/03-ec2-load-balancer` | `03_aws_ec2_load_balancer.md` | Los scripts de *user data* de las instancias |
+| `infraestructura/terraform/04-terraform-fundamentos` | `04_terraform_fundamentos.md` | `libreria-infra`: bucket, `index.html` y tabla `books`, con variables y outputs |
+| `infraestructura/terraform/05-terraform-lambda-state` | `05_terraform_lambda_state.md` | `libreria-infra` completo: la API de libros en Lambda con su rol y su URL, y un módulo |
+
 ## Requisitos
 
 - Node.js 24 LTS.

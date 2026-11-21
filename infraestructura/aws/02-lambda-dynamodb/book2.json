@@ -1,0 +1,7 @@
+{
+  "id": { "S": "2" },
+  "title": { "S": "El nombre del viento" },
+  "author": { "S": "Patrick Rothfuss" },
+  "price": { "N": "22" },
+  "genre": { "S": "Fantasy" }
+}
