@@ -1,0 +1,33 @@
+// Alloy lee los logs de los contenedores de Docker y se los envía a Loki.
+
+// 1. Busca los contenedores que están en marcha
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock" // así habla con Docker
+  refresh_interval = "5s"                          // busca contenedores nuevos cada 5 s
+}
+
+// 2. Les pone la etiqueta "container" con su nombre (api-libros, ...)
+discovery.relabel "containers" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"] // Docker lo da como "/api-libros"
+    regex         = "/(.*)"                          // quita la barra del principio
+    target_label  = "container"
+  }
+}
+
+// 3. Lee sus logs
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to    = [loki.write.local.receiver] // y se los pasa al bloque 4
+}
+
+// 4. Los envía a Loki
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

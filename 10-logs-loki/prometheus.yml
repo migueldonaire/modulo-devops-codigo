@@ -1,0 +1,11 @@
+# Prometheus lee (scrapea) las métricas de la API cada 15 segundos.
+# host.docker.internal es "tu ordenador" visto desde un contenedor.
+# Sirve tanto con npm run start:dev como con la API en Docker (publica el puerto 3000).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: api-libros
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:3000"]

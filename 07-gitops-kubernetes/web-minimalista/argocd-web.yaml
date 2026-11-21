@@ -1,0 +1,22 @@
+# Sesión 07: Argo CD vigila la carpeta k8s/ de tu repositorio y la aplica.
+# Este fichero NO va dentro de k8s/: se aplica una vez con
+#   kubectl apply -f argocd-web.yaml
+# Cambia TU_USUARIO y TU_REPO.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/TU_USUARIO/TU_REPO.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

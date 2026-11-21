@@ -1,0 +1,5 @@
+# Providers descargados: se recuperan con terraform init
+.terraform/
+# El estado: la memoria de Terraform (lo vemos en la sesión 05)
+*.tfstate
+*.tfstate.*

@@ -1,0 +1,28 @@
+# Sesión 08: Prometheus y Grafana en tu ordenador.
+#   docker compose up -d                 (en esta carpeta)
+#   cd api-libros && npm run start:dev  (la API, en tu ordenador)
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # para que también funcione en Linux
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    container_name: grafana
+    ports:
+      - "3001:3000" # el 3000 es de la API
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin # solo para tu ordenador
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
